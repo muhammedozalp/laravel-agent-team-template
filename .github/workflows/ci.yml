@@ -1,0 +1,171 @@
+# CI gate — mirrors the local pre-merge gate (context/ai-interaction.md).
+# All jobs except `browser` are blocking; enable branch protection when the plan allows.
+# Note: ext-sockets is required repo-wide (pest-plugin-browser platform req),
+# and asset builds need PHP too (the Wayfinder Vite plugin shells out to artisan).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  style:
+    name: Pint (style)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sockets, intl, zip, bcmath
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: ./vendor/bin/pint --test
+
+  static:
+    name: PHPStan (Larastan)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sockets, intl, zip, bcmath
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: ./vendor/bin/phpstan analyse --no-progress
+
+  frontend:
+    name: ESLint + Prettier + tsc
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint:check
+      - run: npm run format:check
+      - run: npm run types:check
+
+  tests:
+    name: Pest (Postgres 17)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: app_testing
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U app"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, intl, zip, bcmath, redis, sockets
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      # phpunit.xml points at host "db" (Docker); in CI the service is on localhost.
+      - run: php artisan test --testsuite=Unit,Feature
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+          REDIS_HOST: 127.0.0.1
+
+  assets:
+    name: Vite build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      # Wayfinder generates TS route files via `php artisan` during the build.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sockets, intl, zip, bcmath
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+
+  # Non-blocking until flake-free (ADR 0004) — flip continue-on-error to false
+  # once the suite is stable for a few weeks.
+  browser:
+    name: Browser tests (non-blocking)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: app_testing
+          POSTGRES_USER: app
+          POSTGRES_PASSWORD: secret
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U app"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, intl, zip, bcmath, sockets
+          coverage: none
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: npm ci && npm run build
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+      - run: npx playwright install --with-deps chromium
+      - run: php artisan test --testsuite=Browser
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: '5432'
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync

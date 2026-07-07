@@ -1,0 +1,54 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git switch *)",
+      "Bash(git push -u origin i*)",
+      "Bash(git push origin i*)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr diff *)",
+      "Bash(gh pr view *)",
+      "Bash(docker compose up -d*)",
+      "Bash(docker compose exec app php artisan *)",
+      "Bash(docker compose exec app composer *)",
+      "Bash(docker compose exec app ./vendor/bin/pint*)",
+      "Bash(docker compose exec app ./vendor/bin/phpstan *)",
+      "Bash(docker compose exec node npm run build)",
+      "Bash(docker compose exec node npm run dev*)",
+      "Bash(docker compose exec node npm run lint*)",
+      "Bash(docker compose exec node npm run format*)",
+      "Bash(docker compose exec node npm run types*)",
+      "Bash(docker compose exec node npm ci)",
+      "Bash(docker compose run --rm browser php artisan test*)",
+      "Bash(docker compose logs *)",
+      "Bash(docker compose ps*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/block-generated-and-env-edits.sh\""
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/warn-edit-merged-migration.sh\""
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/warn-commit-on-main.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

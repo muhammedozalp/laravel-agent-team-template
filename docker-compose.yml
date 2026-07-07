@@ -1,0 +1,158 @@
+# Dev stack — see context/guides/docker.md. All app commands run through
+# `docker compose exec app|node …`; nothing runs on the host.
+name: laravel-template
+
+services:
+  app:
+    build:
+      context: ./docker/app
+      target: dev
+      args:
+        UID: "${DOCKER_UID:-1000}"
+        GID: "${DOCKER_GID:-1000}"
+    volumes:
+      - .:/var/www/html
+    environment:
+      PHP_IDE_CONFIG: serverName=app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    image: nginx:1.27-alpine
+    ports:
+      - "${APP_PORT:-8080}:80"
+      - "${APP_HTTPS_PORT:-443}:443"
+    environment:
+      APP_HOST: ${APP_HOST:-examplesite.local}
+    volumes:
+      - .:/var/www/html:ro
+      - ./docker/nginx/templates:/etc/nginx/templates:ro
+      - ./docker/nginx/snippets:/etc/nginx/snippets:ro
+      - ./docker/nginx/certs:/etc/nginx/certs
+      - ./docker/nginx/09-selfsigned.sh:/docker-entrypoint.d/09-selfsigned.sh:ro
+    networks:
+      default:
+        aliases:
+          # containers (e.g. browser tests) resolve the vhost names too
+          - ${APP_HOST:-examplesite.local}
+          - staging.${APP_HOST:-examplesite.local}
+    depends_on:
+      - app
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-app}
+      POSTGRES_USER: ${DB_USERNAME:-app}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+    ports:
+      - "${DB_FORWARD_PORT:-54320}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-testing-db.sh:/docker-entrypoint-initdb.d/init-testing-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-app} -d ${DB_DATABASE:-app}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # PHP + Node image: the kit's Wayfinder Vite plugin shells out to `php artisan`
+  # during dev and build, so a pure-Node container can't run Vite anymore.
+  node:
+    build:
+      context: ./docker/app
+      target: browser
+      args:
+        UID: "${DOCKER_UID:-1000}"
+        GID: "${DOCKER_GID:-1000}"
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "${VITE_PORT:-5173}:5173"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit
+    ports:
+      - "${MAILPIT_UI_PORT:-8025}:8025"
+
+  # Always on: QUEUE_CONNECTION=redis means jobs would otherwise sit in Redis
+  # silently in dev. `queue:listen` picks up code changes without restarts.
+  queue:
+    build:
+      context: ./docker/app
+      target: dev
+      args:
+        UID: "${DOCKER_UID:-1000}"
+        GID: "${DOCKER_GID:-1000}"
+    command: php artisan queue:listen --tries=3 --timeout=90
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Always on: without it, the first $schedule->…() a project writes silently
+  # never runs locally.
+  scheduler:
+    build:
+      context: ./docker/app
+      target: dev
+      args:
+        UID: "${DOCKER_UID:-1000}"
+        GID: "${DOCKER_GID:-1000}"
+    command: php artisan schedule:work
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Pest browser tests (e2e / smoke / a11y — context/guides/testing.md).
+  # One-time browser install:  docker compose run --rm browser npx playwright install chromium firefox webkit
+  # Run the suite:             docker compose run --rm browser php artisan test --testsuite=Browser
+  browser:
+    profiles: ["testing"]
+    build:
+      context: ./docker/app
+      target: browser
+      args:
+        UID: "${DOCKER_UID:-1000}"
+        GID: "${DOCKER_GID:-1000}"
+    command: php artisan test --testsuite=Browser
+    volumes:
+      - .:/var/www/html
+      - playwright-cache:/home/app/.cache
+    environment:
+      E2E_BASE_URL: ${E2E_BASE_URL:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
+  playwright-cache:
