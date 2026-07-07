@@ -1,5 +1,7 @@
 <?php
 
+use App\Providers\Filament\AdminPanelProvider;
+
 /*
 |--------------------------------------------------------------------------
 | Architecture tests — conventions as executable rules
@@ -11,7 +13,7 @@
 arch()->preset()->php();
 // AdminPanelProvider is Filament's documented name — exempt from the
 // "*ServiceProvider" suffix rule.
-arch()->preset()->laravel()->ignoring(App\Providers\Filament\AdminPanelProvider::class);
+arch()->preset()->laravel()->ignoring(AdminPanelProvider::class);
 arch()->preset()->security();
 
 // No debug output committed.
