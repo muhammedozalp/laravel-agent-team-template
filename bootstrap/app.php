@@ -3,6 +3,7 @@
 use App\Http\Middleware\EnsureAccountIsApproved;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
+use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            SetLocale::class,
             // Invalidates every other session when the password changes — without
             // this, a stolen session survives a password change (guides/testing.md
             // has the regression test; SecurityController updates this session's hash).

@@ -34,6 +34,8 @@ e2e, smoke, a11y, cross-browser/device), CI/CD, and a token/cost-conscious workf
 | Testing strategy (unit / feature / browser / static) | `context/guides/testing.md` |
 | Database & PostgreSQL practices | `context/guides/database.md` |
 | Deploy / CI-CD how-to | `context/guides/deploy.md` |
+| SEO baseline (robots / sitemap / meta) | `context/guides/seo.md` |
+| i18n — Turkish default, adding languages | `context/guides/i18n.md` |
 | Start a new project from this template | `context/guides/new-project-from-template.md` |
 
 ## Commands

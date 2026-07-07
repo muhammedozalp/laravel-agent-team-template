@@ -35,7 +35,9 @@ it('logs in and out through the browser', function () {
         ->assertPathIs('/dashboard')
         ->click('Known User')          // opens the sidebar user menu
         ->click('Log out')
-        ->assertSee('Log in');         // back on a guest page
+        // Back on the guest welcome page — whose nav is translated (default
+        // locale tr, guides/i18n.md), so this also proves i18n end-to-end.
+        ->assertSee('Giriş yap');
 });
 
 it('login page has no serious accessibility issues', function () {

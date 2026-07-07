@@ -34,6 +34,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $remember_token
  * @property bool $is_admin
  * @property Carbon|null $approved_at
+ * @property string|null $locale
  * @property string|null $app_authentication_secret
  * @property string|null $app_authentication_recovery_codes
  * @property Carbon|null $created_at

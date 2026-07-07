@@ -35,6 +35,7 @@ class UserFactory extends Factory
             'two_factor_confirmed_at' => null,
             'is_admin' => false,
             'approved_at' => now(),
+            'locale' => null,
         ];
     }
 

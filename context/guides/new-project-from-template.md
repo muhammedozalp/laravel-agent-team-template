@@ -23,6 +23,7 @@ docker compose up -d --build
 docker compose exec app composer install
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
+docker compose exec app php artisan app:doctor                     # setup sanity check
 docker compose exec app php artisan test --testsuite=Unit,Feature  # green = healthy
 ```
 

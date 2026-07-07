@@ -68,4 +68,6 @@ redis. Vite dev server (`node` container, `:5173`) serves hot assets.
 | Testing strategy | `guides/testing.md` |
 | PostgreSQL practices | `guides/database.md` |
 | Deploy / CI-CD | `guides/deploy.md` |
+| SEO baseline (robots/sitemap/meta) | `guides/seo.md` |
+| i18n — Turkish default, adding languages | `guides/i18n.md` |
 | Bootstrap a new project from this template | `guides/new-project-from-template.md` |

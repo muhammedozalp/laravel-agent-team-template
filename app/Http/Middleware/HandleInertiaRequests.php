@@ -3,6 +3,9 @@
 namespace App\Http\Middleware;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\File;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -42,6 +45,40 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            // i18n (guides/i18n.md): current locale + its translation map for
+            // the t()/tChoice() helpers in resources/js/lib/i18n.ts.
+            'locale' => app()->getLocale(),
+            'translations' => fn (): array => $this->translations(app()->getLocale()),
         ];
+    }
+
+    /**
+     * Flat translation map for one locale: lang/{locale}.json keys merged with
+     * lang/{locale}/*.php groups flattened to dot notation. Cached forever —
+     * busted by deploys (config:cache flow) or `php artisan cache:clear`.
+     *
+     * @return array<string, string>
+     */
+    private function translations(string $locale): array
+    {
+        return Cache::rememberForever("translations.{$locale}", function () use ($locale): array {
+            $map = [];
+
+            $json = lang_path("{$locale}.json");
+            if (File::exists($json)) {
+                $map = json_decode(File::get($json), true, 512, JSON_THROW_ON_ERROR);
+            }
+
+            foreach (File::glob(lang_path("{$locale}/*.php")) as $file) {
+                $group = pathinfo($file, PATHINFO_FILENAME);
+                foreach (Arr::dot(require $file) as $key => $value) {
+                    if (is_string($value)) {
+                        $map["{$group}.{$key}"] = $value;
+                    }
+                }
+            }
+
+            return $map;
+        });
     }
 }

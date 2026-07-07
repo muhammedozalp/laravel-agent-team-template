@@ -78,11 +78,18 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'tr'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
-    'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
+    'faker_locale' => env('APP_FAKER_LOCALE', 'tr_TR'),
+
+    // Locales users may switch to (guides/i18n.md). Add e.g. 'ar' per project —
+    // RTL is handled automatically via the dir attribute in app.blade.php.
+    'available_locales' => ['tr', 'en'],
+
+    // Local vhost (guides/docker.md) — read via config so caching works.
+    'host' => env('APP_HOST', 'examplesite.local'),
 
     /*
     |--------------------------------------------------------------------------
