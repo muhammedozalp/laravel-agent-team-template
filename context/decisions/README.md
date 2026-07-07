@@ -16,3 +16,4 @@ ADR keeps its file; the new one links back._
 | [0008](0008-four-agent-team.md) | Four-agent team: CEO + Senior/Dev/Runner, routing by complexity | Accepted |
 | [0009](0009-filament-admin.md) | Filament v5 is the standard admin panel (users list/approve/delete, approval gate) | Accepted |
 | [0010](0010-specialist-subagents.md) | Specialists (QA/security/SEO) are invokable sub-agents, not standing sessions | Accepted |
+| [0011](0011-developer-checklists.md) | Developer-only launch/ops checklists page in the admin panel (probes + audit) | Accepted |

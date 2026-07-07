@@ -12,7 +12,9 @@ use Illuminate\Console\Command;
  */
 class MakeAdminCommand extends Command
 {
-    protected $signature = 'app:make-admin {email : Email address of an existing user}';
+    protected $signature = 'app:make-admin
+        {email : Email address of an existing user}
+        {--developer : Also grant the developer tier (checklists page — ADR 0011)}';
 
     protected $description = 'Promote an existing user to admin (grants /admin panel access)';
 
@@ -28,11 +30,12 @@ class MakeAdminCommand extends Command
 
         $user->forceFill([
             'is_admin' => true,
+            'is_developer' => $user->is_developer || (bool) $this->option('developer'),
             // An admin must never be locked out by the approval gate.
             'approved_at' => $user->approved_at ?? now(),
         ])->save();
 
-        $this->info("{$user->email} is now an admin.");
+        $this->info("{$user->email} is now an admin".($user->is_developer ? ' + developer' : '').'.');
 
         return self::SUCCESS;
     }

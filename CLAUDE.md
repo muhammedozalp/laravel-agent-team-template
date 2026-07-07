@@ -36,6 +36,7 @@ e2e, smoke, a11y, cross-browser/device), CI/CD, and a token/cost-conscious workf
 | Deploy / CI-CD how-to | `context/guides/deploy.md` |
 | SEO baseline (robots / sitemap / meta) | `context/guides/seo.md` |
 | i18n — Turkish default, adding languages | `context/guides/i18n.md` |
+| Launch/ops checklists (developer-only admin page) | `context/guides/checklists.md` |
 | Start a new project from this template | `context/guides/new-project-from-template.md` |
 
 ## Commands

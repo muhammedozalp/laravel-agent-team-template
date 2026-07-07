@@ -34,6 +34,7 @@ class UserFactory extends Factory
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
             'is_admin' => false,
+            'is_developer' => false,
             'approved_at' => now(),
             'locale' => null,
         ];
@@ -46,6 +47,17 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'is_admin' => true,
+        ]);
+    }
+
+    /**
+     * The developer tier (ADR 0011): admin + the developer-only surfaces.
+     */
+    public function developer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+            'is_developer' => true,
         ]);
     }
 

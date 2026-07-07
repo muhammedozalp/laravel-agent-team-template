@@ -33,6 +33,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $two_factor_confirmed_at
  * @property string|null $remember_token
  * @property bool $is_admin
+ * @property bool $is_developer
  * @property Carbon|null $approved_at
  * @property string|null $locale
  * @property string|null $app_authentication_secret
@@ -74,6 +75,7 @@ class User extends Authenticatable implements FilamentUser, HasAppAuthentication
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
             'is_admin' => 'boolean',
+            'is_developer' => 'boolean',
             'approved_at' => 'datetime',
             'app_authentication_secret' => 'encrypted',
             'app_authentication_recovery_codes' => 'encrypted:array',
