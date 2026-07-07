@@ -62,7 +62,7 @@ jobs:
           key: composer-${{ hashFiles('composer.lock') }}
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate
-      - run: php artisan wayfinder:generate
+      - run: php artisan wayfinder:generate --with-form
       - uses: actions/setup-node@v5
         with:
           node-version: 24
