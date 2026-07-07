@@ -16,8 +16,10 @@ workflow. Everything runs in **Docker** (native engine); nothing installs on the
 | Environment | `docker compose up -d`: php-fpm, nginx with **HTTPS local vhost** (`https://examplesite.local` + subdomains), Postgres 17 (+ dedicated test DB), Redis, Vite node, Mailpit (:8025), queue worker + scheduler always on, browser-test service |
 | Testing | Pest 4 (unit / feature / **browser**) against **real Postgres**: e2e, smoke group, accessibility assertions, cross-browser (Chrome/Firefox/WebKit), mobile-device emulation, staging/prod smoke via `E2E_BASE_URL`; arch tests, Larastan level 7, Pint + ESLint/Prettier/tsc — wired as the pre-merge gate and in CI |
 | CI/CD | GitHub Actions: style + static + tests(+pg service) + asset build, Gitleaks secret scan, Dependabot. Deploy path chosen per project (`context/guides/deploy.md`) |
+| Admin panel | **Filament v5** at `/admin`: Users management (list, approve, delete), optional registration-approval gate (`REQUIRE_ACCOUNT_APPROVAL`), panel MFA; first admin via `php artisan app:make-admin` |
 | Agent team | CEO (specs, routing, reviews — no edits) → Senior/Dev/Runner (implement by complexity tier, one PR per task), coordinated through `context/agent_team/` mailbox files — see the charter |
 | Guardrails | Claude Code hooks: block edits to `vendor/`/`storage/`/`public/build/`/`.env*`, warn on commit-to-main and on editing merged migrations |
+| AI tooling | Laravel Boost MCP (dockerized) + Context7 in `.mcp.json`; frontend-design, Playwright, and official Laravel plugins auto-enabled (`context/guides/claude-tooling.md`) |
 | Token/cost system | Thin-router docs + Laravel Boost MCP + Graphify knowledge graph (`context/token-optimization.md`) |
 
 ## Quick start (fresh clone)

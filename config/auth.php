@@ -114,4 +114,17 @@ return [
 
     'password_timeout' => env('AUTH_PASSWORD_TIMEOUT', 10800),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Account Approval Gate
+    |--------------------------------------------------------------------------
+    |
+    | When enabled, freshly registered users wait at an approval notice until
+    | an admin approves them from the /admin panel (guides/auth.md). Off by
+    | default — public sites keep instant registration.
+    |
+    */
+
+    'require_approval' => env('REQUIRE_ACCOUNT_APPROVAL', false),
+
 ];

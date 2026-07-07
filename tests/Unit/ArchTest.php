@@ -9,7 +9,9 @@
 */
 
 arch()->preset()->php();
-arch()->preset()->laravel();
+// AdminPanelProvider is Filament's documented name — exempt from the
+// "*ServiceProvider" suffix rule.
+arch()->preset()->laravel()->ignoring(App\Providers\Filament\AdminPanelProvider::class);
 arch()->preset()->security();
 
 // No debug output committed.

@@ -32,15 +32,35 @@ limiters); this guide is the map + the decisions._
   SMTP provider can't block registration/reset requests.
 - Production checklist: `SESSION_SECURE_COOKIE=true` (`deploy.md`).
 
+## Admin panel (Filament v5 — ADR 0009)
+
+- **Access:** `/admin`, same `web` session; gate = `User::canAccessPanel()`
+  (`is_admin && verified`). Grant admin ONLY via
+  `docker compose exec app php artisan app:make-admin <email>` — `is_admin` is
+  never mass-assignable, registration can never set it.
+- **Panel MFA:** Filament's own TOTP (`AppAuthentication`, `recoverable()`),
+  independent columns from Fortify's 2FA — the panel login bypasses Fortify, so
+  it carries its own MFA.
+- **Users resource** (`app/Filament/Resources/Users/`): list-only — search/sort,
+  verified/approved/admin badges, **Approve** (emails the user,
+  `AccountApproved`), **Delete** (hidden for yourself). Tested with Livewire
+  Pest helpers in `tests/Feature/Admin/`.
+- **Approval gate:** `REQUIRE_ACCOUNT_APPROVAL=true` holds fresh registrations
+  at `approval-pending` (middleware alias `approved`, used like `verified`)
+  until an admin approves. Off by default = instant registration. Admins always
+  pass; `app:make-admin` auto-approves.
+- New admin screens: `make:filament-resource Thing --generate`, prune to what
+  the spec needs, test with `livewire(ListThings::class)` helpers
+  (`../guides/testing.md` patterns apply — TDD included).
+
 ## Deliberate absences (decide per project, don't relitigate)
 
-- **Authorization / roles:** nothing ships — every verified user is equal. First
-  need: prefer a boolean/enum column (`is_admin`) + policies; reach for
-  `spatie/laravel-permission` only when a client actually has role matrices.
+- **Roles/permissions beyond `is_admin`:** reach for
+  `spatie/laravel-permission` only when a client actually has role matrices;
+  Filament respects policies when you add them.
 - **API auth (Sanctum):** absent — this is an Inertia session app. Add Sanctum
   only when a real API consumer appears (mobile app, third party).
 - **Social login (Socialite):** absent — add per client request; it changes
   privacy policy and account-linking UX, so it's a product decision.
-- **Admin panel:** see `../backlog/admin-panel-stance.md`.
 - **GDPR extras** (export, anonymization, deletion grace period): the baseline
   password-confirmed hard delete ships; anything more is per-client policy.

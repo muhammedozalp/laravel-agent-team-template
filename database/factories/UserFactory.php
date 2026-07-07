@@ -33,7 +33,29 @@ class UserFactory extends Factory
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,
+            'is_admin' => false,
+            'approved_at' => now(),
         ];
+    }
+
+    /**
+     * A panel admin: flag set, approved, verified.
+     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'is_admin' => true,
+        ]);
+    }
+
+    /**
+     * A user still waiting for account approval (see auth.require_approval).
+     */
+    public function unapproved(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'approved_at' => null,
+        ]);
     }
 
     /**

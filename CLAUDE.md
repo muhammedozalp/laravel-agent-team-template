@@ -29,7 +29,8 @@ e2e, smoke, a11y, cross-browser/device), CI/CD, and a token/cost-conscious workf
 | Agent coordination (CEO → Senior/Dev/Runner) | `context/agent_team/index.md` (charter; logs + board are local) |
 | Token / context / session cost policy | `context/token-optimization.md` |
 | Docker environment how-to | `context/guides/docker.md` |
-| Auth: what ships, hardening, deliberate absences | `context/guides/auth.md` |
+| Auth: what ships, hardening, admin panel (Filament) | `context/guides/auth.md` |
+| Claude Code tooling (plugins / MCPs / skills) | `context/guides/claude-tooling.md` |
 | Testing strategy (unit / feature / browser / static) | `context/guides/testing.md` |
 | Database & PostgreSQL practices | `context/guides/database.md` |
 | Deploy / CI-CD how-to | `context/guides/deploy.md` |

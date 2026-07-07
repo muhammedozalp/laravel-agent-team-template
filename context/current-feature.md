@@ -25,6 +25,12 @@ Open work lives in `context/feature/` and `context/fix/` — check each spec's
 
 ## History (newest first)
 
+- **2026-07-07** — **Filament v5 standard admin (ADR 0009):** `/admin` panel with
+  Users resource (list/approve/delete), optional approval gate
+  (`REQUIRE_ACCOUNT_APPROVAL`), panel MFA, `app:make-admin` command — all TDD'd
+  (16 new tests). Claude tooling wired: dockerized Boost MCP, frontend-design/
+  Playwright/official-Laravel plugins auto-enabled, `guides/claude-tooling.md`.
+
 - **2026-07-07** — **4-agent team (ADR 0008):** expanded Lead+Dev to the reference
   project's CEO → Senior/Dev/Runner model — routing by complexity, per-agent logs,
   same star topology and serialization. Hardening batch shipped the same day:

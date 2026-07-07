@@ -29,9 +29,19 @@ docker compose exec app php artisan test        # green suite = healthy template
 ## 3. Install the AI tooling (once per project)
 
 ```bash
-docker compose exec app php artisan boost:install   # Laravel Boost MCP
-uv tool install "graphifyy[postgres]" && graphify install
+docker compose exec app php artisan boost:install               # Boost guidelines + skills
+docker compose exec app php artisan boost:update --discover     # picks up Filament's AI guidelines
+uv tool install "graphifyy[postgres]" && graphify install       # once per machine
 # then in a Claude session:  /graphify .
+```
+
+Then create the first admin and check the panel:
+
+```bash
+docker compose exec app php artisan db:seed        # demo users incl. admin@example.com
+# or promote a real account:
+docker compose exec app php artisan app:make-admin you@example.com
+# → https://<your-host>/admin  (set REQUIRE_ACCOUNT_APPROVAL in .env if wanted)
 ```
 
 If Boost's MCP tools don't appear in Claude Code, see ADR 0005's note

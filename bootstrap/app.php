@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsApproved;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -17,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+
+        // Optional admin-approval gate, used like `verified` (guides/auth.md).
+        $middleware->alias([
+            'approved' => EnsureAccountIsApproved::class,
+        ]);
 
         $middleware->web(append: [
             // Invalidates every other session when the password changes — without
