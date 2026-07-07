@@ -29,6 +29,7 @@ return [
                 ['key' => 'auto.debug-off', 'label' => 'Debug mode off in production', 'probe' => Probes\DebugModeProbe::class],
                 ['key' => 'auto.sentry', 'label' => 'Error monitoring configured (Sentry DSN)', 'probe' => Probes\SentryProbe::class],
                 ['key' => 'auto.mail', 'label' => 'Real mailer configured (not log/array)', 'probe' => Probes\MailerProbe::class],
+                ['key' => 'auto.lighthouse', 'label' => 'Lighthouse scores meet the floor', 'description' => 'docker compose run --rm browser npm run lighthouse', 'probe' => Probes\LighthouseProbe::class],
             ],
         ],
         [

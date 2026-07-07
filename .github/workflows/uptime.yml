@@ -1,0 +1,54 @@
+# External uptime + SSL-expiry monitor with ntfy push alerts
+# (guides/checklists.md Phase 3 — the reference project's planned pattern).
+# Lives OUTSIDE the server on purpose: an in-app probe can't report the app
+# being down. No-ops until the repo variable MONITOR_URL is set.
+#
+# Setup (repo → Settings):
+#   Variables: MONITOR_URL = https://example.com   (the production site)
+#   Secrets:   NTFY_TOPIC  = your-secret-topic     (subscribe in the ntfy app)
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    if: ${{ vars.MONITOR_URL != '' }}
+    steps:
+      - name: Uptime — /up must answer 200
+        id: up
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "${{ vars.MONITOR_URL }}/up" || echo 000)
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          [ "$code" = "200" ] || echo "DOWN ($code)"
+
+      - name: SSL — certificate must be valid > 14 days
+        id: ssl
+        run: |
+          host=$(echo "${{ vars.MONITOR_URL }}" | sed -E 's|https?://||; s|/.*||')
+          expiry=$(echo | openssl s_client -servername "$host" -connect "$host:443" 2>/dev/null \
+            | openssl x509 -noout -enddate | cut -d= -f2)
+          days=$(( ( $(date -d "$expiry" +%s) - $(date +%s) ) / 86400 ))
+          echo "days=$days" >> "$GITHUB_OUTPUT"
+          echo "Certificate expires in $days days ($expiry)"
+
+      - name: Alert via ntfy on problems
+        if: ${{ steps.up.outputs.code != '200' || steps.ssl.outputs.days < 14 }}
+        run: |
+          [ -z "${{ secrets.NTFY_TOPIC }}" ] && { echo "NTFY_TOPIC not set — no alert sent"; exit 0; }
+          msg=""
+          [ "${{ steps.up.outputs.code }}" != "200" ] && msg="Site DOWN (HTTP ${{ steps.up.outputs.code }}). "
+          [ "${{ steps.ssl.outputs.days }}" -lt 14 ] && msg="${msg}SSL expires in ${{ steps.ssl.outputs.days }} days."
+          curl -s \
+            -H "Title: ${{ vars.MONITOR_URL }}" \
+            -H "Priority: urgent" \
+            -H "Tags: rotating_light" \
+            -d "$msg" \
+            "https://ntfy.sh/${{ secrets.NTFY_TOPIC }}"
+
+      - name: Fail the run so it shows red in Actions
+        if: ${{ steps.up.outputs.code != '200' }}
+        run: exit 1

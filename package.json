@@ -9,6 +9,7 @@
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "html:check": "bash scripts/html-check.sh",
+        "lighthouse": "node scripts/lighthouse-check.mjs",
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
         "types:check": "tsc --noEmit"
@@ -26,6 +27,7 @@
         "eslint-plugin-react": "^7.37.3",
         "eslint-plugin-react-hooks": "^7.0.0",
         "html-validate": "^11.5.5",
+        "lighthouse": "^13.4.0",
         "playwright": "^1.59.1",
         "prettier": "^3.4.2",
         "prettier-plugin-tailwindcss": "^0.8.0",
