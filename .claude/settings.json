@@ -45,10 +45,14 @@
         "hooks": [
           {
             "type": "command",
+            "if": "Bash(git commit*)",
             "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/warn-commit-on-main.sh\""
           }
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "frontend-design@claude-plugins-official": true
   }
 }
