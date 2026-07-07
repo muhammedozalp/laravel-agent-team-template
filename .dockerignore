@@ -1,0 +1,34 @@
+# Build context hygiene for docker/prod/Dockerfile (context = repo root).
+# Secrets must never enter an image layer:
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Installed/generated locally — the build stage produces its own:
+vendor/
+node_modules/
+public/build/
+public/hot
+resources/js/actions/
+resources/js/routes/
+resources/js/wayfinder/
+bootstrap/ssr/
+
+# Runtime + local state
+storage/framework/cache/data/
+storage/framework/sessions/
+storage/framework/views/
+storage/framework/testing/
+storage/logs/
+tests/Browser/Screenshots/
+docker/nginx/certs/
+
+# Not needed inside images
+.git/
+.github/
+.claude/
+context/
+tests/
+*.md
+docker-compose*.yml

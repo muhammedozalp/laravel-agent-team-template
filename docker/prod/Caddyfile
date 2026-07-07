@@ -1,0 +1,21 @@
+# APP_DOMAIN comes from .env via docker-compose.prod.yml.
+# Caddy provisions + renews Let's Encrypt certificates automatically.
+{$APP_DOMAIN} {
+	root * /srv/public
+	encode zstd gzip
+
+	header {
+		X-Frame-Options "SAMEORIGIN"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Strict-Transport-Security "max-age=63072000; includeSubDomains"
+		-Server
+	}
+
+	# Static assets straight from Caddy; everything else to php-fpm.
+	php_fastcgi app:9000 {
+		root /var/www/html/public
+	}
+	file_server
+}

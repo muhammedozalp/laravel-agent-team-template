@@ -1,0 +1,111 @@
+# Production stack — used ON THE VPS (context/guides/deploy.md is the runbook).
+#   docker compose -f docker-compose.prod.yml up -d
+# Images come from GHCR (built by .github/workflows/deploy.yml); the server
+# holds only this file, scripts/deploy.sh, and the decrypted .env.
+name: app-prod
+
+services:
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/OWNER/REPO-web:latest}
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?set APP_DOMAIN in .env}
+    volumes:
+      - caddy-data:/data
+      - caddy-config:/config
+      - app-storage:/var/www/html/storage
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  app:
+    image: ${APP_IMAGE:-ghcr.io/OWNER/REPO-app:latest}
+    env_file: .env
+    volumes:
+      - app-storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  queue:
+    image: ${APP_IMAGE:-ghcr.io/OWNER/REPO-app:latest}
+    command: php artisan queue:work --tries=3 --timeout=90 --max-time=3600
+    env_file: .env
+    volumes:
+      - app-storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  scheduler:
+    image: ${APP_IMAGE:-ghcr.io/OWNER/REPO-app:latest}
+    command: php artisan schedule:work
+    env_file: .env
+    volumes:
+      - app-storage:/var/www/html/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:?}
+      POSTGRES_USER: ${DB_USERNAME:?}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # Nightly pg_dump with rotation into a named volume; copy off-site via cron
+  # (deploy.md § Backups). Restore recipe lives in guides/database.md.
+  backups:
+    image: prodrigestivill/postgres-backup-local:17
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${DB_DATABASE:?}
+      POSTGRES_USER: ${DB_USERNAME:?}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+      SCHEDULE: "@daily"
+      BACKUP_KEEP_DAYS: "7"
+      BACKUP_KEEP_WEEKS: "4"
+      BACKUP_KEEP_MONTHS: "6"
+    volumes:
+      - db-backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
+  app-storage:
+  pgdata:
+  redisdata:
+  db-backups:

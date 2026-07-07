@@ -1,0 +1,96 @@
+# Deploy to the VPS — context/guides/deploy.md is the runbook.
+# Safe to commit before any secrets exist: every deploy step is guarded on
+# DEPLOY_SSH_HOST, so the workflow no-ops until the server is configured.
+#
+# push to main  -> build images + deploy (when secrets are set)
+# manual run    -> same, with dry_run (build only, no deploy) defaulting true
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Build images but skip the server deploy
+        type: boolean
+        default: true
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  APP_IMAGE: ghcr.io/${{ github.repository }}-app
+  WEB_IMAGE: ghcr.io/${{ github.repository }}-web
+
+jobs:
+  build:
+    name: Build + push images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build app image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/prod/Dockerfile
+          target: prod-app
+          push: true
+          tags: |
+            ${{ env.APP_IMAGE }}:latest
+            ${{ env.APP_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/prod/Dockerfile
+          target: prod-web
+          push: true
+          tags: |
+            ${{ env.WEB_IMAGE }}:latest
+            ${{ env.WEB_IMAGE }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    name: Release on VPS
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ inputs.dry_run != true }}
+    steps:
+      - name: Check deploy secrets
+        id: guard
+        run: |
+          if [ -n "${{ secrets.DEPLOY_SSH_HOST }}" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "DEPLOY_SSH_HOST not set — skipping deploy (build-only mode)."
+          fi
+      - name: Deploy over SSH
+        if: steps.guard.outputs.configured == 'true'
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_SSH_HOST }}
+          username: ${{ secrets.DEPLOY_SSH_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          script: |
+            cd ${{ secrets.DEPLOY_APP_DIR || '/srv/app' }}
+            export APP_IMAGE=${{ env.APP_IMAGE }}:${{ github.sha }}
+            export WEB_IMAGE=${{ env.WEB_IMAGE }}:${{ github.sha }}
+            export LARAVEL_ENV_ENCRYPTION_KEY='${{ secrets.LARAVEL_ENV_ENCRYPTION_KEY }}'
+            export APP_DOMAIN=${{ secrets.APP_DOMAIN }}
+            bash scripts/deploy.sh

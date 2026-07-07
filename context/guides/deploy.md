@@ -1,9 +1,11 @@
-# Deploy & CI/CD
+# Deploy — VPS runbook & CI/CD
 
-_CI is fully wired; **deployment is a per-project decision** — this guide gives the
-CI contract and the two recommended deploy paths. When a project picks one, replace
-the "Deploy options" section with the real runbook (the reference project's
-`deploy.md` shows the level of detail to aim for)._
+_The template's deploy path is a **single VPS running the production Docker
+stack** (owner decision 2026-07-07; Caddy chosen over nginx-in-prod for
+automatic Let's Encrypt). Pieces: `docker/prod/Dockerfile` (images),
+`docker-compose.prod.yml` (server stack), `scripts/deploy.sh` (release),
+`.github/workflows/deploy.yml` (pipeline), `.env.production.example` (env
+template)._
 
 ## CI (`.github/workflows/ci.yml`) — runs on every PR
 
@@ -12,40 +14,106 @@ the "Deploy options" section with the real runbook (the reference project's
 3. **Frontend** — ESLint + Prettier check + `tsc --noEmit` (blocking)
 4. **Tests** — Unit+Feature Pest suites against a `postgres:17` service, config
    identical to local `app_testing` (blocking)
-5. **Assets** — `npm ci && npm run build` incl. Wayfinder generation (blocking —
-   a broken Vite build must not reach `main`)
+5. **Assets** — `npm ci && npm run build` incl. Wayfinder generation (blocking)
 6. **Browser** — Playwright e2e/smoke/a11y (non-blocking until flake-free, ADR 0004)
 
-Also wired: **Dependabot** (weekly composer + npm + actions bumps) and **Gitleaks**
-(secret scanning on every push — critical before a repo ever goes public).
+Also wired: **Dependabot**, **Gitleaks**, and the `main-ci-gate` repo ruleset
+requiring all blocking checks on PRs.
 
-Branch rule: PRs merge only when CI is green (enable branch protection when the
-GitHub plan allows; until then the rule is enforced by the team charter).
+## Architecture in one line
 
-## Deploy options (pick per project, then document the choice in an ADR)
+GitHub Actions builds two images to GHCR (`-app` = php-fpm with code baked in,
+`-web` = Caddy + `public/`), then SSHes to the VPS where `scripts/deploy.sh`
+pulls, backs up the DB, migrates, caches, and health-checks `/up`. Caddy
+provisions TLS automatically for `APP_DOMAIN`.
 
-**Option A — VPS + Docker (recommended default).** The dev compose file has a
-production sibling: build the `app` image with `--target` optimizations, run
-`php artisan migrate --force` on release, nginx in front, Postgres either as a
-container with volumes+backups or a managed instance. Works on Hetzner/DO; pairs
-well with Coolify or plain `docker compose` + a GitHub Actions SSH deploy step.
+## Zero → production (once per project)
 
-**Option B — Managed PHP platform** (Forge/Vapor/Ploi): fastest to production,
-platform handles TLS/queues/scheduler; costs monthly and constrains the stack.
+1. **VPS** (Hetzner/DO class, Ubuntu LTS): install Docker Engine + compose
+   plugin; create a deploy user in the `docker` group; SSH key-only auth;
+   enable ufw (22/80/443) + unattended-upgrades.
+2. **DNS:** `A` record for `example.com` (and `staging.` if used) → VPS IP.
+   Caddy needs the record live before first start to get certificates.
+3. **App dir on the server** (`/srv/app`):
+   `docker-compose.prod.yml`, `scripts/deploy.sh`, `.env.production.encrypted`
+   (all from the repo — a shallow clone of the repo is the easy way).
+4. **Production env** (locally):
+   ```bash
+   cp .env.production.example .env.production      # gitignored
+   # fill real values (APP_KEY via: php artisan key:generate --show)
+   docker compose exec app php artisan env:encrypt --env=production
+   git add .env.production.encrypted && git commit
+   ```
+   The printed encryption key goes to your **password manager** AND the
+   `LARAVEL_ENV_ENCRYPTION_KEY` GitHub secret. Plaintext `.env.production`
+   never leaves your machine; the encrypted file in git IS the backup.
+5. **GitHub secrets** (repo → Settings → Secrets):
 
-Shared-hosting FTP (the reference project's method) is **not** suitable here — a
-Laravel app needs a process manager, writable `storage/`, and migrations on release.
+   | Secret | Value |
+   |---|---|
+   | `DEPLOY_SSH_HOST` | VPS IP/hostname — **the deploy no-ops until this exists** |
+   | `DEPLOY_SSH_USER` | deploy user |
+   | `DEPLOY_SSH_KEY` | private key for that user |
+   | `DEPLOY_APP_DIR` | optional, default `/srv/app` |
+   | `LARAVEL_ENV_ENCRYPTION_KEY` | from step 4 |
+   | `APP_DOMAIN` | e.g. `example.com` |
 
-## Release checklist (any option)
+6. **First release:** run the Deploy workflow manually with `dry_run=false`
+   (or push to `main`). Then create the first admin:
+   `docker compose -f docker-compose.prod.yml exec app php artisan app:make-admin you@example.com`.
+
+## Every release after that
+
+Merge to `main` → CI gates → Deploy builds images → `scripts/deploy.sh` on the
+server: pull → **pg_dump backup** → `migrate --force` → config/route/view/event
+caches → `queue:restart` → `/up` health check (fails the workflow if unhealthy).
+
+Post-deploy smoke from your machine (or add it to the workflow when flake-free):
+
+```bash
+E2E_BASE_URL=https://example.com docker compose run --rm -e E2E_BASE_URL browser \
+  php artisan test --testsuite=Browser --group=smoke
+```
+
+## Backups
+
+- **Automatic:** the `backups` service pg_dumps nightly with rotation
+  (7 daily / 4 weekly / 6 monthly) into the `db-backups` volume, plus one dump
+  **before every migrate** (deploy.sh).
+- **Off-site (do this — a volume on the same disk is not a backup):** cron an
+  rclone/rsync of `/var/lib/docker/volumes/app-prod_db-backups` to object
+  storage or another host.
+- **Restore:** see `database.md` § Operations.
+
+## Rollback
+
+Images are tagged by commit SHA:
+
+```bash
+export APP_IMAGE=ghcr.io/<owner>/<repo>-app:<previous-sha>
+export WEB_IMAGE=ghcr.io/<owner>/<repo>-web:<previous-sha>
+docker compose -f docker-compose.prod.yml up -d
+```
+
+Migrations are append-only (ADR/database.md), so old code usually runs on the
+new schema. If a migration itself must be undone: restore the pre-migrate dump
+taken by deploy.sh, then roll the images back.
+
+## Secrets inventory (where things live — never in git)
+
+| Secret | Home |
+|---|---|
+| App runtime env (DB/mail/Sentry/APP_KEY) | `.env.production.encrypted` in git; key in password manager + GH secret |
+| VPS SSH key, hosting panel, registrar, SMTP account | password manager (+ per-client `_content/` folder, untracked) |
+| CI-time values | GitHub Actions secrets (table above) |
+
+## Release checklist (deploy.sh automates the starred items)
 
 - [ ] `APP_ENV=production`, `APP_DEBUG=false`, real `APP_KEY`,
       `SESSION_SECURE_COOKIE=true`, `LOG_LEVEL=warning`
 - [ ] `SENTRY_DSN` set (error monitoring is inert without it)
-- [ ] `php artisan config:cache route:cache view:cache event:cache`
-- [ ] `php artisan migrate --force` gated on backup taken
-- [ ] Queue worker + scheduler (`schedule:run` cron or `schedule:work`) supervised
-- [ ] `storage/` writable, `public/storage` link, logs shipped somewhere durable
-- [ ] Post-deploy: run the smoke suite against the deployed URL
-      (`E2E_BASE_URL=https://<env> docker compose run --rm -e E2E_BASE_URL browser \
-       php artisan test --testsuite=Browser --group=smoke` — `testing.md`)
+- [ ] ★ backup before `migrate --force`
+- [ ] ★ config/route/view/event caches rebuilt; `storage:link`; `queue:restart`
+- [ ] ★ `/up` healthy
+- [ ] Post-deploy: smoke suite against the live URL (above)
 - [ ] Post-deploy: rebuild the Graphify graph (`../token-optimization.md`)

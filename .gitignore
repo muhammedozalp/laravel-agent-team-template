@@ -50,3 +50,7 @@ tests/Browser/Screenshots/
 /resources/js/actions
 /resources/js/routes
 /resources/js/wayfinder
+
+# production env: template + encrypted file are committed, plaintext never
+!.env.production.example
+!.env.production.encrypted

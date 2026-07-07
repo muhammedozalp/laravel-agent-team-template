@@ -6,8 +6,9 @@ detailed status board (each spec carries its own `Status:` line)._
 
 ## Active
 
-Queued: a concrete VPS deploy runbook + production Docker build (owner decision
-2026-07-07; replaces the options section in `guides/deploy.md`).
+Nothing queued — the original brief plus all owner-decided additions are shipped.
+Next work comes from real-project usage (candidates parked in `backlog/`:
+SEO baseline, i18n scaffolding, `app:doctor` bootstrap check).
 
 > **Template-creation mode:** while the template itself is being built, work lands
 > directly on `main` and no feature/fix spec files are created — the spec system
@@ -24,6 +25,14 @@ Open work lives in `context/feature/` and `context/fix/` — check each spec's
 - None yet.
 
 ## History (newest first)
+
+- **2026-07-07** — **VPS deploy runbook shipped:** production images
+  (`docker/prod/Dockerfile`: php-fpm `prod-app` + Caddy `prod-web` with auto
+  Let's Encrypt), `docker-compose.prod.yml` (queue, scheduler, nightly rotated
+  pg_dump backups), GitHub Actions `deploy.yml` (GHCR build → SSH release,
+  secret-guarded), `scripts/deploy.sh` (backup-gated migrate, caches, `/up`
+  health check), encrypted-env flow (`.env.production.example` +
+  `env:encrypt`), rollback + restore recipes. `guides/deploy.md` is the runbook.
 
 - **2026-07-07** — **Filament v5 standard admin (ADR 0009):** `/admin` panel with
   Users resource (list/approve/delete), optional approval gate

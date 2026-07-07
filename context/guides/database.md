@@ -38,7 +38,15 @@ _PostgreSQL 17 in all environments (ADR `../decisions/0002-postgresql.md`). Dev 
 
 ## Operations
 
-- Backups/restores and psql access: `docker compose exec db pg_dump -U app app > …`
-  — dev only. Production backup policy is per-project (`deploy.md`).
+- Dev psql/dumps: `docker compose exec db pg_dump -U app app > …`.
+- **Production backups** are automatic (nightly rotated dumps + one before every
+  migrate — `deploy.md` § Backups). **Restore** on the VPS:
+  ```bash
+  docker compose -f docker-compose.prod.yml stop app queue scheduler
+  ls /var/lib/docker/volumes/app-prod_db-backups/_data/daily/   # pick a dump
+  zcat <dump>.sql.gz | docker compose -f docker-compose.prod.yml exec -T db \
+      psql -U app -d app
+  docker compose -f docker-compose.prod.yml start app queue scheduler
+  ```
 - Schema questions in an AI session go to **Boost's schema tool or Graphify's graph**
   first (`../token-optimization.md`) — not to reading every migration file.

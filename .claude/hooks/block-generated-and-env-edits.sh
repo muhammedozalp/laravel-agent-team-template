@@ -29,7 +29,8 @@ deny() {
 }
 
 case "$rel" in
-  .env.example|.env.sample|.env.template) exit 0 ;;
+  # Committed templates are fine — including per-env ones (.env.production.example).
+  .env.example|.env.sample|.env.template|.env.*.example) exit 0 ;;
   .env|.env.*)
     deny "Blocked: $rel holds secrets and is never edited by agents. Change .env.example (committed template) and ask the owner to update .env." ;;
   vendor/*|node_modules/*)
