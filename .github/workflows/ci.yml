@@ -14,7 +14,7 @@ jobs:
     name: Pint (style)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -31,7 +31,7 @@ jobs:
     name: PHPStan (Larastan)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -48,7 +48,7 @@ jobs:
     name: ESLint + Prettier + tsc
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       # Wayfinder-generated TS (resources/js/{actions,routes,wayfinder}) is
       # git-ignored; eslint/tsc need it, and generating it needs PHP.
       - uses: shivammathur/setup-php@v2
@@ -89,7 +89,7 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -121,7 +121,7 @@ jobs:
     name: Vite build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       # Wayfinder generates TS route files via `php artisan` during the build.
       - uses: shivammathur/setup-php@v2
         with:
@@ -161,7 +161,7 @@ jobs:
           --health-timeout 3s
           --health-retries 10
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
