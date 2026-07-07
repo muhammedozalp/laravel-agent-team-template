@@ -49,6 +49,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      # Wayfinder-generated TS (resources/js/{actions,routes,wayfinder}) is
+      # git-ignored; eslint/tsc need it, and generating it needs PHP.
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: sockets, intl, zip, bcmath
+          coverage: none
+      - uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ hashFiles('composer.lock') }}
+      - run: composer install --no-interaction --prefer-dist --no-progress
+      - run: cp .env.example .env && php artisan key:generate
+      - run: php artisan wayfinder:generate
       - uses: actions/setup-node@v5
         with:
           node-version: 24
@@ -87,6 +101,12 @@ jobs:
           key: composer-${{ hashFiles('composer.lock') }}
       - run: composer install --no-interaction --prefer-dist --no-progress
       - run: cp .env.example .env && php artisan key:generate
+      # Feature tests render Inertia pages through @vite — build real assets.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci && npm run build
       # phpunit.xml points at host "db" (Docker); in CI the service is on localhost.
       - run: php artisan test --testsuite=Unit,Feature
         env:
