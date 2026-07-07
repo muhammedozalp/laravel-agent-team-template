@@ -20,4 +20,4 @@
 
 ## Resolution
 
-<Drafted by Dev in the same PR: cause, fix, branch, PR#.>
+<Drafted by the assigned agent in the same PR: cause, fix, branch, PR#.>

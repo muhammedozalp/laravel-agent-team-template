@@ -51,12 +51,15 @@ graphify install          # registers the /graphify skill
   a stale graph answers confidently and wrongly. Never trust graph answers about
   files changed on the current branch; read those directly.
 
-## Optional additions (per project, not default)
+### 4. Context7 MCP (ships in `.mcp.json` — graduated from optional at the ADR 0007 pivot)
 
-- **Context7 MCP** — version-specific docs for the JS/frontend half (React,
-  Inertia, shadcn/ui, TypeScript — which Boost's Laravel-ecosystem docs don't
-  cover). Since the React-kit pivot (ADR 0007) this is **recommended once real
-  frontend work starts**; free tier is 1k requests/month.
+Version-specific docs for the JS/frontend half (React, Inertia, shadcn/ui,
+TypeScript — which Boost's Laravel-ecosystem docs don't cover). Works keyless at
+low volume; set `CONTEXT7_API_KEY` past ~1k requests/month. Rule: frontend
+library questions → Context7; Laravel-ecosystem questions → Boost Search Docs.
+
+## Deliberately not adopted
+
 - **Graphiti / Mem0 memory graphs** — real cross-session memory, but the graph-DB +
   extraction-LLM overhead is disproportionate for a small team; `handoff.md` +
   ADRs + Graphify cover ~90% of the need at zero cost.

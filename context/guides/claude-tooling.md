@@ -7,8 +7,9 @@ every contributor automatically; per-machine pieces are one-time installs._
 
 | Piece | Where | What it gives agents |
 |---|---|---|
-| Skills: `add-crud-module`, `new-task`, `session-handoff` | `.claude/skills/` | repeatable recipes, loaded only when triggered |
-| Guardrail hooks (block generated/env edits; warn on main-commit, merged-migration edits) | `.claude/hooks/` | hard rails; see its README |
+| Skills: `add-crud-module`, `new-task`, `session-handoff` + **Boost-generated stack skills** (fortify/inertia-react/pest/tailwind/wayfinder/laravel-best-practices) | `.claude/skills/` | repeatable recipes + version-pinned framework guidance, loaded only when triggered |
+| Guardrail hooks (block generated/env edits; warn on main-commit, merged-migration edits; SessionStart tooling check) | `.claude/hooks/` | hard rails + missing-tooling warnings; see its README |
+| Specialist sub-agents: `qa-engineer`, `security-auditor`, `seo-auditor` | `.claude/agents/` | invokable perspectives, report-only (ADR 0010) |
 | Permissions allowlist | `.claude/settings.json` | no prompts for the standard docker/git/gh commands |
 | Plugins auto-enabled project-wide | `.claude/settings.json` → `enabledPlugins` | `frontend-design` (public React site only — **not** the Filament panel), `playwright` (interactive browser driving for e2e debugging), `laravel` (Laravel's official plugin: `laravel-simplifier` agent + `starter-kit-upgrade` skill) |
 | MCP servers | `.mcp.json` | **laravel-boost** (dockerized `php artisan boost:mcp`) + **context7** (needs `CONTEXT7_API_KEY` env for >1k req/mo) |

@@ -33,13 +33,15 @@ Working agreements:
 |---|---|---|---|
 | Static — style | whole repo | — | `docker compose exec app ./vendor/bin/pint --test` |
 | Static — analysis | `app/`, `bootstrap/app.php`, `config/`, `database/`, `routes/` (not `tests/` — Pest `$this` inference) | `phpstan.neon` (Larastan, **level 7**) | `docker compose exec app ./vendor/bin/phpstan analyse` |
+| Static — HTML | rendered HTML of key routes (fetched live) | `html-validate` (`.htmlvalidate.json` + `scripts/html-check.sh`) | `docker compose exec node npm run html:check` |
 | Arch rules | `tests/Unit/ArchTest.php` | conventions as code | included in `artisan test` |
 | Unit | `tests/Unit/` | pure logic | `docker compose exec app php artisan test --testsuite=Unit` |
 | Feature | `tests/Feature/` | HTTP + **Postgres** (`app_testing`, `RefreshDatabase`) | `docker compose exec app php artisan test --testsuite=Feature` |
 | Browser | `tests/Browser/` | Pest v4 browser tests (Playwright, dedicated `browser` service) | `docker compose run --rm browser php artisan test --testsuite=Browser` |
 
-Full suite: `docker compose exec app php artisan test` (add `--parallel` when it
-grows slow).
+Backend suite: `docker compose exec app php artisan test --testsuite=Unit,Feature`
+(add `--parallel` when it grows slow). The default `artisan test` would include the
+Browser suite, which needs the `browser` container — run that separately as above.
 
 ## Browser layer — e2e, smoke, a11y, cross-browser, cross-device, multi-env
 
@@ -87,7 +89,7 @@ Notes:
   unit-test what a feature test already covers.
 - Browser tests are expensive: **critical flows only** (signup, checkout, the thing
   the client sells). Non-blocking in CI until flake-free.
-- Arch tests encode conventions (`tests/Arch.php`): no `dd()`/`dump()`/`ray()`
+- Arch tests encode conventions (`tests/Unit/ArchTest.php`): no `dd()`/`dump()`/`ray()`
   committed, no `env()` outside `config/`, Actions are invokable, etc. Extend it
   when a review comment repeats — turn the comment into a rule.
 

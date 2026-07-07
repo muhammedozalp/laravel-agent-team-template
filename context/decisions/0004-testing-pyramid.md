@@ -31,3 +31,12 @@ PRs touching user-facing flows and stay non-blocking until flake-free.
 - Conventions are enforced by tests, not review comments — cheaper for an AI team.
 - Browser layer needs Playwright in the `node` container / CI image.
 - Contributors write Pest, not PHPUnit, style; the two coexist if needed.
+
+## Amendment (2026-07-07, with the ADR 0007 stack pivot)
+
+Facts that changed after acceptance (kept here rather than silently editing the
+decision): Larastan runs at **level 7** (the React kit's default — floor raised,
+never lowered); arch rules live in **`tests/Unit/ArchTest.php`**; Playwright
+lives in the dedicated **`browser`** service image (not `node`); the frontend
+gate (ESLint/Prettier/tsc) and **HTML validation** (`npm run html:check`,
+html-validate against rendered pages) joined the static layer.

@@ -24,4 +24,4 @@
 
 ## Resolution
 
-<Drafted by Dev in the same PR: what was built, branch, PR#, anything follow-up.>
+<Drafted by the assigned agent in the same PR: what was built, branch, PR#, anything follow-up.>

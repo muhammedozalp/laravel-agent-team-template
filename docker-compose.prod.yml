@@ -4,9 +4,18 @@
 # holds only this file, scripts/deploy.sh, and the decrypted .env.
 name: app-prod
 
+# Container stdout/stderr logs rotate (Laravel's own files rotate via the
+# `daily` channel; this caps the Docker json-file layer so disks never fill).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   web:
     image: ${WEB_IMAGE:-ghcr.io/OWNER/REPO-web:latest}
+    logging: *default-logging
     ports:
       - "80:80"
       - "443:443"
@@ -22,6 +31,7 @@ services:
 
   app:
     image: ${APP_IMAGE:-ghcr.io/OWNER/REPO-app:latest}
+    logging: *default-logging
     env_file: .env
     volumes:
       - app-storage:/var/www/html/storage
@@ -34,6 +44,7 @@ services:
 
   queue:
     image: ${APP_IMAGE:-ghcr.io/OWNER/REPO-app:latest}
+    logging: *default-logging
     command: php artisan queue:work --tries=3 --timeout=90 --max-time=3600
     env_file: .env
     volumes:
@@ -47,6 +58,7 @@ services:
 
   scheduler:
     image: ${APP_IMAGE:-ghcr.io/OWNER/REPO-app:latest}
+    logging: *default-logging
     command: php artisan schedule:work
     env_file: .env
     volumes:
@@ -58,6 +70,7 @@ services:
 
   db:
     image: postgres:17-alpine
+    logging: *default-logging
     environment:
       POSTGRES_DB: ${DB_DATABASE:?}
       POSTGRES_USER: ${DB_USERNAME:?}
@@ -75,6 +88,7 @@ services:
   # (deploy.md § Backups). Restore recipe lives in guides/database.md.
   backups:
     image: prodrigestivill/postgres-backup-local:17
+    logging: *default-logging
     environment:
       POSTGRES_HOST: db
       POSTGRES_DB: ${DB_DATABASE:?}
@@ -93,6 +107,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    logging: *default-logging
     volumes:
       - redisdata:/data
     healthcheck:

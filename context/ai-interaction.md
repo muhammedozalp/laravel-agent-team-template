@@ -2,7 +2,7 @@
 
 _Canonical workflow reference: the agent team, task lifecycle, pre-merge gate, and
 git/process rules. The team charter (roles, communication protocol) lives in
-`agent_team/index.md` — this file owns the **process** both agents follow._
+`agent_team/index.md` — this file owns the **process** every agent follows._
 
 ## The team (summary — charter is `agent_team/index.md`)
 

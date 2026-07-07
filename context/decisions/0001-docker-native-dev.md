@@ -24,3 +24,12 @@ compose file follows its service naming so Sail-based docs still map.
 - Guardrail permission allowlists can safely include `docker compose exec app …`.
 - Slight overhead: file-sync performance on non-Linux hosts; commands are longer
   (mitigate with shell aliases if desired — not committed, host-specific).
+
+## Amendment (2026-07-07)
+
+The service list grew after acceptance: `queue` and `scheduler` are **always on**
+(silent-job / never-runs traps), a `browser` service (PHP+Node+Playwright) runs
+the Pest browser suite, and `node` uses the same PHP+Node image because the
+Wayfinder Vite plugin shells out to artisan. Production runs separate baked
+images (`docker/prod/`, `guides/deploy.md`) — the no-host-toolchain rule holds
+in both environments.

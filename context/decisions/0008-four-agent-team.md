@@ -47,4 +47,4 @@ Improvements over the reference version:
   utilization) — mitigated by the board's STATUS paragraph always naming the next
   relay action.
 - ADR 0003's escape hatch inverted: a project that feels heavy can simply not
-  launch Senior/Runner sessions — the charter degrades gracefully to Lead+Dev.
+  launch Senior/Runner sessions — the charter degrades gracefully to CEO+Dev.

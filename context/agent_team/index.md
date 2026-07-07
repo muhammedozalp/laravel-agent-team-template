@@ -17,6 +17,11 @@ PRs, spec Resolutions, ADRs, `current-feature.md` history)._
 The human **owner** relays messages between sessions, sets priorities, and is the
 only one who merges.
 
+**Specialist perspectives are sub-agents, not extra team members** (ADR 0010):
+any agent can invoke `qa-engineer`, `security-auditor`, or `seo-auditor`
+(`.claude/agents/`) mid-task — report-only, isolated context, no owner relay.
+Invoke the relevant auditor before REPORTing anything touching their domain.
+
 ## Rules
 
 - **Routing:** one feature → one agent → one PR. Parallelism = different features

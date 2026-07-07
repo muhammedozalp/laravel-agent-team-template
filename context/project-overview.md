@@ -24,7 +24,7 @@ product description (see `guides/new-project-from-template.md`).
 | Frontend | **React 19 + Inertia 2 + TypeScript + Tailwind 4 + shadcn/ui**; Wayfinder generates typed routes | `decisions/0007-react-starter-kit.md` |
 | Auth | **Fortify** — registration, login, password reset, **enforced email verification**, 2FA, passkeys, settings pages | `config/fortify.php`; tested in `tests/Feature/Auth` + `tests/Browser` |
 | Admin | **Filament v5** at `/admin` — Users resource (list/approve/delete), optional approval gate, panel MFA | `decisions/0009-filament-admin.md`; `guides/auth.md` § Admin panel |
-| Runtime | **Docker native engine** — app (php-fpm) + nginx + postgres + redis + node + mailpit | `decisions/0001-docker-native-dev.md` |
+| Runtime | **Docker native engine** — app (php-fpm), nginx (HTTPS vhost), postgres, redis, node (Vite), mailpit, queue + scheduler (always on), browser (testing) — prod: `docker/prod/` images | `decisions/0001-docker-native-dev.md` |
 | Tests | **Pest** (unit / feature / browser) + **Larastan** (static) + **Pint** (style) | `decisions/0004-testing-pyramid.md` |
 | Mail (dev) | Mailpit (catches all outbound mail, UI on :8025) | no accidental real mail |
 | AI tooling | Laravel Boost MCP · Graphify · thin-router docs | `decisions/0005-token-optimization-stack.md` |

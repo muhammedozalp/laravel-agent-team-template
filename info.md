@@ -59,8 +59,8 @@ Decisions made after the original brief above, in agreement with the owner
 1. **"Graphify" resolved + token stack chosen (ADR 0005):** graphify = the
    knowledge-graph skill (code + PostgreSQL schema as a queryable graph). Adopted
    stack: native context discipline (thin-router CLAUDE.md, `context/` docs,
-   handoff files) + **Laravel Boost MCP** + **Graphify**. Context7 optional
-   (more valuable since the React pivot); Graphiti/Mem0 deferred.
+   handoff files) + **Laravel Boost MCP** + **Graphify**. Context7 ships in
+   `.mcp.json` (graduated at the React pivot); Graphiti/Mem0 deferred.
 2. **Agent team:** launched as 2-agent Lead+Dev (ADR 0003), later expanded to the
    full **4-agent CEO → Senior/Dev/Runner** model from the reference project
    (ADR 0008); files-as-mailbox coordination kept.
@@ -82,8 +82,9 @@ Decisions made after the original brief above, in agreement with the owner
    **Fortify** (email verification enforced; passkeys/2FA-ready; hardened per
    `context/guides/auth.md`). Chosen over the Livewire kit and over keeping
    Breeze, to align with Laravel's official direction.
-8. **Deploy target: VPS** — a concrete runbook + production Docker build is the
-   remaining queued work (`context/current-feature.md` §Active).
+8. **Deploy target: VPS — shipped:** production images (php-fpm + Caddy
+   auto-TLS), GHCR→SSH pipeline, nightly DB backups, encrypted-env flow
+   (`context/guides/deploy.md` is the runbook).
 9. **Template stays pristine:** creation work lands directly on `main`, no
    feature/fix spec files for the template's own work (the spec system +
    branch→PR→review lifecycle are for real projects started from it).

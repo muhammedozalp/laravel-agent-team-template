@@ -23,16 +23,18 @@ docker compose up -d --build
 docker compose exec app composer install
 docker compose exec app php artisan key:generate
 docker compose exec app php artisan migrate
-docker compose exec app php artisan test        # green suite = healthy template
+docker compose exec app php artisan test --testsuite=Unit,Feature  # green = healthy
 ```
 
-## 3. Install the AI tooling (once per project)
+## 3. AI tooling (mostly pre-installed — a SessionStart hook warns if anything is missing)
+
+Boost's stack skills **ship in the repo** (`.claude/skills/`); refresh them when
+packages change, and set up the per-machine pieces:
 
 ```bash
-docker compose exec app php artisan boost:install               # Boost guidelines + skills
-docker compose exec app php artisan boost:update --discover     # picks up Filament's AI guidelines
+docker compose exec app php artisan boost:update --discover     # refresh after composer changes
 uv tool install "graphifyy[postgres]" && graphify install       # once per machine
-# then in a Claude session:  /graphify .
+# then in a Claude session:  /graphify .                        # build this project's graph
 ```
 
 Then create the first admin and check the panel:
@@ -56,7 +58,8 @@ If Boost's MCP tools don't appear in Claude Code, see ADR 0005's note
 - `CLAUDE.md`: update the one-paragraph description at the top. Nothing else should
   need touching — that's the point of the thin router.
 - Copy `context/agent_team/templates/board.template.md` → `agent_team/board.md`
-  and `log.template.md` → `agent_team/log-dev.md` (both stay git-ignored).
+  and `log.template.md` → one `agent_team/log-<role>.md` per agent you launch
+  (`log-senior.md`, `log-dev.md`, `log-runner.md`; all stay git-ignored).
 
 ## 5. First session ritual
 
@@ -74,4 +77,4 @@ gh repo create <org>/<project> --private --source . --push
 ```
 
 Enable branch protection on `main` when the plan allows; add `Dependabot` alerts;
-set the deploy secrets only when a deploy path is chosen (`deploy.md`).
+set the deploy secrets when you are ready to deploy (`deploy.md` § Zero → production).
