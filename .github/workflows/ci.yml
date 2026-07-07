@@ -20,7 +20,7 @@ jobs:
           php-version: '8.4'
           extensions: sockets, intl, zip, bcmath
           coverage: none
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -37,7 +37,7 @@ jobs:
           php-version: '8.4'
           extensions: sockets, intl, zip, bcmath
           coverage: none
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -56,7 +56,7 @@ jobs:
           php-version: '8.4'
           extensions: sockets, intl, zip, bcmath
           coverage: none
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -95,7 +95,7 @@ jobs:
           php-version: '8.4'
           extensions: pdo_pgsql, pgsql, intl, zip, bcmath, redis, sockets
           coverage: none
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -128,7 +128,7 @@ jobs:
           php-version: '8.4'
           extensions: sockets, intl, zip, bcmath
           coverage: none
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
@@ -171,7 +171,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ~/.composer/cache
           key: composer-${{ hashFiles('composer.lock') }}
