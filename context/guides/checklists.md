@@ -29,6 +29,27 @@ checklists with per-project state. Client admins cannot see it._
 ## Shipped probes
 
 health (`/up`) · robots-per-environment · sitemap non-empty · security headers ·
-HTTPS APP_URL · debug-off-in-production · Sentry DSN · real-mailer-in-production.
-Lighthouse scoring + external uptime/expiry monitoring: Phase 3 (this guide is
-updated when they land).
+HTTPS APP_URL · debug-off-in-production · Sentry DSN · real-mailer-in-production ·
+Lighthouse report freshness + scores.
+
+## Lighthouse (Phase 3)
+
+`docker compose run --rm browser npm run lighthouse` audits the app
+(`LIGHTHOUSE_URL` overrides the target — point it at production before
+launch). Playwright launches its Chromium; the Lighthouse CLI attaches over
+the CDP port and writes `storage/app/private/lighthouse.json`. The
+`auto.lighthouse` probe then checks the report is fresher than
+`checklists.lighthouse.max_age_days` (30) and every category score ≥
+`min_score` (80). Gotcha (cost us a night): while the Vite dev server runs,
+`public/hot` points every asset at it — unreachable from the audit browser, so
+nothing paints and Lighthouse dies with **NO_FCP**. The script moves the hot
+file aside for the audit and restores it. Locally expect a low SEO score (the
+non-production robots response correctly blocks indexing) and a throttled
+performance score — judge both against production.
+
+## Uptime + SSL expiry (Phase 3)
+
+`.github/workflows/uptime.yml` checks `/up` and certificate expiry every 30
+minutes **from outside the server** (an in-app probe can't report the app
+being down). No-ops until you set repo variable `MONITOR_URL`; pushes alerts
+to `ntfy.sh/<NTFY_TOPIC secret>` — subscribe to that topic in the ntfy app.

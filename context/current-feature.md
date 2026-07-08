@@ -6,9 +6,10 @@ detailed status board (each spec carries its own `Status:` line)._
 
 ## Active
 
-Nothing queued — the original brief plus all owner-decided additions are shipped.
-Next work comes from real-project usage (candidates parked in `backlog/`:
-SEO baseline, i18n scaffolding, `app:doctor` bootstrap check).
+Nothing queued — the original brief plus all owner-decided additions are shipped
+(the former backlog trio — SEO baseline, i18n scaffolding, `app:doctor` — and
+the checklists feature all landed 2026-07-07/08). Next work comes from
+real-project usage; undecided ideas go to `backlog/`.
 
 > **Template-creation mode:** while the template itself is being built, work lands
 > directly on `main` and no feature/fix spec files are created — the spec system
@@ -25,6 +26,23 @@ Open work lives in `context/feature/` and `context/fix/` — check each spec's
 - None yet.
 
 ## History (newest first)
+
+- **2026-07-08** — **Checklists (ADR 0011), all 3 phases:** developer-only
+  `/admin/checklists` Filament page — 8 tabbed groups / ~54 items,
+  `is_developer` tier, 9 automated probes (incl. Lighthouse report checks),
+  weekly scheduled runs with green→red regression mail, external uptime +
+  SSL-expiry monitor (`uptime.yml` + ntfy push). `guides/checklists.md`.
+
+- **2026-07-07** — **i18n + SEO baseline + `app:doctor`** (backlog trio
+  graduated): Turkish-default zero-dependency i18n (shared Inertia props,
+  `t()`/`tChoice()`, per-user locale, RTL-ready — `guides/i18n.md`);
+  environment-aware robots + cached sitemap routes + `<Seo>` component
+  (`guides/seo.md`); `app:doctor` machine-setup diagnostic. Specialist
+  sub-agents (ADR 0010) + HTML validation joined the toolbox the same day.
+
+- **2026-07-07** — **Published publicly:**
+  github.com/muhammedozalp/laravel-agent-team-template — redacted history,
+  `main` protected by a CI-gate ruleset, Dependabot enabled.
 
 - **2026-07-07** — **VPS deploy runbook shipped:** production images
   (`docker/prod/Dockerfile`: php-fpm `prod-app` + Caddy `prod-web` with auto

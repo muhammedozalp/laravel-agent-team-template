@@ -56,10 +56,13 @@ export function useTranslations() {
 
         for (const segment of segments) {
             const exact = segment.match(/^\{(\d+)\}\s?(.*)/);
+
             if (exact && Number(exact[1]) === count) {
                 return replaceParams(exact[2], { ...params, count });
             }
+
             const range = segment.match(/^\[(\d+),(\d+|\*)\]\s?(.*)/);
+
             if (
                 range &&
                 count >= Number(range[1]) &&
@@ -70,9 +73,11 @@ export function useTranslations() {
         }
 
         const plain = segments.filter((s) => !/^[{[]/.test(s));
+
         if (plain.length > 1) {
             const rule = new Intl.PluralRules(locale).select(count);
             const index = rule === 'one' ? 0 : Math.min(plain.length - 1, 1);
+
             return replaceParams(plain[index], { ...params, count });
         }
 

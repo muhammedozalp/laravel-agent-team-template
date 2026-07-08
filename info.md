@@ -88,3 +88,33 @@ Decisions made after the original brief above, in agreement with the owner
 9. **Template stays pristine:** creation work lands directly on `main`, no
    feature/fix spec files for the template's own work (the spec system +
    branch→PR→review lifecycle are for real projects started from it).
+10. **Filament v5 is the standard admin panel (ADR 0009), owner-mandated:**
+    `/admin` panel with a Users resource, optional account-approval gate
+    (`REQUIRE_ACCOUNT_APPROVAL`), panel MFA, `app:make-admin` command.
+    Rationale: nearly every full-stack project needs an admin panel, and
+    building it in Filament is faster and token-cheaper than hand-rolling
+    React CRUD (`context/guides/auth.md` § admin panel).
+11. **Specialist agents live as sub-agents, not standing sessions (ADR 0010):**
+    the team stays complexity-tiered (CEO → Senior/Dev/Runner); specialist
+    perspectives (`qa-engineer`, `security-auditor`, `seo-auditor`) are
+    invokable, report-only sub-agents in `.claude/agents/`.
+12. **i18n with Turkish as the default locale:** zero-dependency pattern —
+    `lang/` files shared to React via Inertia props, `t()`/`tChoice()` helpers
+    (`resources/js/lib/i18n.ts`), per-user locale, RTL-ready
+    (`context/guides/i18n.md`). Third-party bridge packages were rejected after
+    research (unmaintained / broken on React 19).
+13. **SEO baseline + `app:doctor`:** environment-aware `robots.txt` + cached
+    XML sitemap routes, a `<Seo>` component and server-rendered meta/OG
+    defaults (`context/guides/seo.md`); `app:doctor` checks a new machine's
+    setup end-to-end (vhost, DBs, Redis, migrations, assets, Wayfinder).
+14. **Launch/ops checklists (ADR 0011):** developer-only `/admin/checklists`
+    page — grouped, tabbed, ~54 items; automated probes (health, robots,
+    sitemap, security headers, HTTPS, debug mode, Sentry, mailer, Lighthouse)
+    run weekly with green→red regression alerts; manual items (Search Console,
+    Google Business Profile, backups tested…) are tick-and-track
+    (`context/guides/checklists.md`). Plus an external uptime + SSL-expiry
+    monitor via GitHub Actions + ntfy push.
+15. **Published as a public template:** 
+    https://github.com/muhammedozalp/laravel-agent-team-template — history
+    redacted for publication (client names/paths removed); `main` is protected
+    by a CI-gate ruleset.

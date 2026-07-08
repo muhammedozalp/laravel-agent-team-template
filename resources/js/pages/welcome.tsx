@@ -10,10 +10,10 @@ export default function Welcome() {
 
     return (
         <>
-            {/* Note: this stock page's opacity fade-in (starting:opacity-0) trips a
-                known Chromium bug in Lighthouse (NO_FCP) and races axe contrast
-                scans (freeze_motion). Skip body-level opacity entrances on real
-                project pages. */}
+            {/* Note: the stock page's whole-body opacity fade-in was removed —
+                it races axe contrast scans and can trip Lighthouse's NO_FCP on
+                slow loads. Prefer entrances that start visible (translate,
+                per-element motion-safe transitions) on real project pages. */}
             <Seo
                 title="Welcome"
                 description="A production-grade Laravel starting point: React, Inertia, Fortify auth, Filament admin, and a full testing pyramid."
