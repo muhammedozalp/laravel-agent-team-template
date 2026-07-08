@@ -85,6 +85,8 @@ return [
                 ['key' => 'hosting.restore-tested', 'label' => 'A restore was actually tested', 'description' => 'a backup you never restored is not a backup (guides/database.md)'],
                 ['key' => 'hosting.monitoring', 'label' => 'Uptime + SSL/domain-expiry monitoring active', 'description' => 'external cron → ntfy (Phase 3) or UptimeRobot — must live OUTSIDE the server'],
                 ['key' => 'hosting.registrar', 'label' => 'Registrar: 2FA on, auto-renew on, contacts current', 'description' => 'domain hijack/lapse protection'],
+                ['key' => 'hosting.abuse-contact', 'label' => 'Provider abuse/notice emails reach a monitored inbox', 'description' => 'answer within hours — on unmanaged providers (Hetzner etc.) ignored abuse reports end in account termination, taking every site with them'],
+                ['key' => 'hosting.billing-hygiene', 'label' => 'Provider auto-pay on + payment method current', 'description' => 'card-expiry reminder set; a locked provider account = all sites down and backups on it unreachable'],
                 ['key' => 'hosting.dns-ttl', 'label' => 'DNS documented; TTLs sane before cutovers', 'description' => 'lower TTL to 300s before migrations; verify MX survives DNS moves'],
                 ['key' => 'hosting.disk-logs', 'label' => 'Log rotation verified (app + docker)', 'description' => 'daily channel + json-file caps ship; confirm on server after a week'],
             ],
