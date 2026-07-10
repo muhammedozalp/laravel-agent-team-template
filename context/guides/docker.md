@@ -54,6 +54,14 @@ answers for the host **and every subdomain** (`staging.examplesite.local`, …).
           examplesite.local "*.examplesite.local"
    docker compose restart web
    ```
+   The certs dir may be root-owned (created by the container) — `sudo chown
+   -R $USER:$USER docker/nginx/certs` first if mkcert gets "permission
+   denied". If the browser still shows "Not secure" afterwards, **trust
+   DevTools (F12 → Security tab), not the badge**: with the Vite dev server
+   running, `public/hot` makes the page load assets over plain HTTP (real
+   mixed content); with it stopped and cert/TLS green, a stale badge is
+   usually browser state or an extension injecting content — verify in a
+   Guest profile. Production is unaffected either way (real CA certs).
 
 Renaming the host for a real project = change `APP_HOST`/`APP_URL` in `.env`, redo
 the `/etc/hosts` line, delete `docker/nginx/certs/*.pem`, restart `web`. Containers
